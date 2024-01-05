@@ -1,0 +1,23 @@
+{
+  "name": "teamspeakdelta",
+  "version": "1.0.0",
+  "description": "Teamspeak server monitor &amp; statistics via discord bot",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Statdk/teamspeakDelta.git"
+  },
+  "author": "Statdk",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Statdk/teamspeakDelta/issues"
+  },
+  "homepage": "https://github.com/Statdk/teamspeakDelta#readme",
+  "dependencies": {
+    "discord.js": "^14.14.1"
+  }
+}

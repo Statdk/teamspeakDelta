@@ -396,3 +396,14 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# VS code folder
+.vscode/
+
+
+## Project Specific
+# Database
+database/*
+
+# Configs
+app.json
