@@ -4,8 +4,9 @@
   "description": "Teamspeak server monitor &amp; statistics via discord bot",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./src/main.js"
+    "start": "node ./src/main.js",
+    "test": "node ./src/bot.js",
+    "register-commands": "node ./src/scripts/deploy-commands.js"
   },
   "repository": {
     "type": "git",

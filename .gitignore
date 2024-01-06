@@ -406,4 +406,4 @@ FodyWeavers.xsd
 database/*
 
 # Configs
-app.json
+bot.json

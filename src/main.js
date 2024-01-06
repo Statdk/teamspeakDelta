@@ -1,66 +1,89 @@
-//@ts-check
+//@ ts-check
 
-const { exec, execSync } = require("child_process");
-const { readFileSync } = require("fs");
+const { execSync, spawn } = require("child_process");
+const { readFileSync, copyFile } = require("fs");
 const { exit } = require("process");
 
-const { connect } = require("./bot.js");
-const config = require("../config/bot.json");
+const config = require("../config/app.json");
 
 function update() {
   console.log("Updating from git...");
-  let result = execSync("git pull");
-  console.log(`${result}`);
+  try {
+    let result = execSync("git pull");
+    console.log(`${result}`);
+  } catch (err) {
+    console.error(
+      "Unable to sync from remote git repository. Proceeding anyway."
+    );
+  }
 }
 
-/**
- *
- * @param {Number} iteration
- * @param {Number} lastCrash
- */
-function main(iteration, lastCrash) {
-  console.log(`Attempt #${iteration} at ${new Date().toLocaleString()}...`);
+function spawnBot(iteration = 1, crashcount = 0, startTime = Date.now()) {
+  update();
 
-  try {
-    connect();
-  } catch (err) {
-    console.log("Client Crash:");
-    console.error(err);
+  console.log(
+    `Executing instance ${iteration} @ ${new Date().toLocaleString()}...`
+  );
 
-    if (lastCrash - Date.now() < config["minimum-alive"]) {
-      if (iteration >= config["max-crash"]) {
-        console.log("Max crashes reached within minimum succession, aborting.");
-      } else {
-        setTimeout(() => main(iteration + 1, Date.now()), 3000);
-        return;
-      }
+  let bot = spawn("node", ["./src/bot.js"], { cwd: "." });
+
+  bot.stdout.on("data", (data) => {
+    console.log(`Log: #${iteration} @ ${new Date().toLocaleString()}: ${data}`);
+  });
+
+  bot.stderr.on("data", (data) => {
+    console.log(
+      `Error: #${iteration} @ ${new Date().toLocaleString()}: ${data}`
+    );
+  });
+
+  bot.on("exit", (code) => {
+    if (code === 0) {
+      console.log("Updating and rebooting instance...");
+      setTimeout(() => spawnBot(iteration + 1, 0, Date.now()), 500);
     } else {
-      main(1, Date.now());
-      return;
-    }
-  }
+      console.error(
+        `Instance #${iteration} crash @ ${new Date().toLocaleString()}\n`
+      );
 
-  console.log("Updating and rebooting bot...");
-  setTimeout(() => init(), 5000);
+      if (crashcount >= config["max-crash"]) {
+        console.error(
+          `Maximum of ${config["max-crash"]} crashes has been reached, aborting...`
+        );
+        exit(1);
+      } else {
+        setTimeout(
+          () =>
+            spawnBot(
+              iteration + 1,
+              startTime - Date.now() < config["minimum-alive"]
+                ? crashcount + 1
+                : 0,
+              Date.now()
+            ),
+          500
+        );
+      }
+    }
+  });
 }
 
 function init() {
-  update();
-
-  let config;
+  let botConf1ig;
 
   try {
-    config = readFileSync("./config/app.json");
+    botConfig = readFileSync("./config/bot.json");
   } catch {
     console.log(
-      `No configuration detected.
+      `No client configuration detected.
 Please create one from the provided template in <ROOT>/config/.`
     );
+    copyFile("./config/bot.json.template", "./config.bot.json");
 
-    exit(0);
+    exit(1);
   }
 
-  main(1, Date.now());
+  spawnBot();
 }
 
 init();
